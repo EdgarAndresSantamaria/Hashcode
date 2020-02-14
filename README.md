@@ -1,6 +1,6 @@
 # Hashcode2020
 
-This code repository is created for the current Hashcode competition contest, current season team EdXiMo composed by Xiao , Mohamed Yassin and Edgar Andrés.
+This code repository is created for the current Hashcode competition contest, current season team EdXiMo composed by Xiao (To do), Mohamed Yassin and Edgar Andrés.
 
 Previously competed as Droidekas David Perez, Guzman Santamaría and Edgar Andrés.
 
