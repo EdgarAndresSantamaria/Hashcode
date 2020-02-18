@@ -4,6 +4,8 @@ import logging
 import threading
 import queue
 import itertools
+from multiprocessing import Pool, Process, Queue
+
 
 class pizzaManager:
 
@@ -71,49 +73,65 @@ class pizzaManager:
         with open(self.outPath, 'w') as file:
             pass
 
+    def put_into_queue(self, depth):
+        return self.worker_assigment(depth)
+
     def process(self):
-        que = queue.Queue()
         format = "%(asctime)s: %(message)s"
         logging.basicConfig(format=format, level=logging.INFO,
                             datefmt="%H:%M:%S")
         logging.info("----- initializing Marley's workers, we never surrender Hu Haaaa (º.º) ")
         completion = 0
-        threads = list()
+        pool = Pool(processes=64)
         results = []
+        logging.info("Main    : create and start threads.")
+        results = pool.map(self.put_into_queue, list(range(1, self.depth+1)))
 
-        for index in range(self.depth):
-            index+=1
-            logging.info("Main    : create and start thread %d.", index)
-            worker = threading.Thread(target=lambda q, arg1: q.put(self.worker_assigment(arg1)), args=(que, index))
-            threads.append(worker)
-            worker.start()
-
-        for index, thread in enumerate(threads):
-            logging.info("Main    : before joining thread %d.", index)
-            thread.join()
-            logging.info("Main    : thread %d done", index)
-            completion += 1./self.depth
-            logging.info("---------------------------------------------------- "+str(completion)+" % completed")
-
-
-        while not que.empty():
-            results.append(que.get())
+        logging.info("---------------------------------------------------- "+str(completion)+" % completed")
         print(results)
         return results
 
     # Parallel combinatorial explosion ..... for self.depth ......
     def worker_assigment(self, depth):
-        guess_response = (depth , 0, 0)
-        for possible_comb in list(self.intelligent_combinations(depth)):
-            addition = sum(possible_comb)
-            if ( addition <= self.M) & (addition > guess_response[1]):guess_response = (depth , addition, possible_comb)
+        guess_response = (depth, 0, 0)
+        for index, num in enumerate(self.typeDistribution):
+            comb_list = self.typeDistribution[index+1:]
+            acc, combination= self.zipper(num, comb_list, depth)
+            if (acc <= self.M) & (acc > guess_response[1]):
+                guess_response = (depth , acc, combination)
         return guess_response
 
-    def intelligent_combinations(self, depth):
-        return itertools.permutations( self.typeDistribution, depth) # brute force (not possible only until depth 4-5)
+    #def intelligent_combinations(self, depth):
+        # return itertools.combinations(self.typeDistribution, depth) # brute force (not possible only until depth 4-5)
         # Todo generate permutations of  'self.typeDistribution' (sorted list) without repetition 'heuristic search'
-        pass
+        #for index, num in enumerate(self.typeDistribution):
+        #    comb_list = self.typeDistribution[index:]
+        #    repeat_partial = zipper(num, comb_list, depth)
+
+    def zipper(self, num, comb_list, depth):
+        i2s = int(len(comb_list) / 2)
+        best = False
+        acc = 0
+        combination = []
+        while not best:
+            new_acc = sum(comb_list[i2s:i2s+depth]) + num
+            if acc < new_acc and new_acc <= self.M:
+                acc = new_acc
+                combination = comb_list[i2s:i2s+depth] + [num]
+                i2s = (i2s + len(comb_list)) // 2
+            else:
+                i2s = i2s // 2
+            if acc == self.M or i2s == 0 or i2s == len(comb_list):
+                best = True
+
+        return acc, combination
+                
+
+
+
 
 if __name__ == '__main__':
-    manager = pizzaManager("a_example.in", 3)
+    #manager = pizzaManager("b_small.in", 9)
+    #manager = pizzaManager("c_medium.in", 30)
+    manager = pizzaManager("d_quite_big.in", 900)
     manager.Marley()
