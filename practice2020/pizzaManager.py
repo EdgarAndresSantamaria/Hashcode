@@ -98,7 +98,7 @@ class pizzaManager:
 
         while not que.empty():
             results.append(que.get())
-
+        print(results)
         return results
 
     # Parallel combinatorial explosion ..... for self.depth ......
@@ -110,7 +110,7 @@ class pizzaManager:
         return guess_response
 
     def intelligent_combinations(self, depth):
-        # return itertools.permutations( self.typeDistribution, depth) # brute force (not possible only until depth 4-5)
+        return itertools.permutations( self.typeDistribution, depth) # brute force (not possible only until depth 4-5)
         # Todo generate permutations of  'self.typeDistribution' (sorted list) without repetition 'heuristic search'
         pass
 
