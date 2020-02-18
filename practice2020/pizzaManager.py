@@ -65,7 +65,7 @@ class pizzaManager:
         print("target : {}".format(self.M))
         print("best score : {}".format(best_score_found))
         print("winner combination : {}".format(comb_to_find))
-
+        # Todo format the output
 
 
         with open(self.outPath, 'w') as file:
@@ -110,10 +110,10 @@ class pizzaManager:
         return guess_response
 
     def intelligent_combinations(self, depth):
-        pass
         # return itertools.permutations( self.typeDistribution, depth) # brute force (not possible only until depth 4-5)
         # Todo generate permutations of  'self.typeDistribution' (sorted list) without repetition 'heuristic search'
+        pass
 
 if __name__ == '__main__':
-    manager = pizzaManager("c_medium.in", 7)
+    manager = pizzaManager("a_example.in", 3)
     manager.Marley()
