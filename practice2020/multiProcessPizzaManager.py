@@ -120,12 +120,20 @@ class pizzaManager:
 
     # Parallel combinatorial explosion ..... for self.depth ......
     def worker_assigment(self, depth):
+        index = int(len(self.typeDistribution) / 2)
+        best = False
         guess_response = (depth, 0, 0)
-        for index, num in enumerate(self.typeDistribution):
+        while not best:
+            num = self.typeDistribution[index]
             comb_list = self.typeDistribution[index+1:]
             acc, combination= self.zipper(num, comb_list, depth)
             if (acc <= self.M) & (acc > guess_response[1]):
                 guess_response = (depth , acc, combination)
+                index = (index + len(self.typeDistribution)) // 2
+            else:
+                index = index // 2
+            if acc == self.M or index == 0 or index == len(self.typeDistribution):
+                best = True
         return guess_response
 
     def zipper(self, num, comb_list, depth):
@@ -155,6 +163,6 @@ if __name__ == '__main__':
     #manager = pizzaManager("a_example.in", 2, 64)
     #manager = pizzaManager("b_small.in", 2, 64)
     #manager = pizzaManager("c_medium.in", 47, 64)
-    manager = pizzaManager("e_also_big.in", depth=4000, n_cores=64)
+    manager = pizzaManager("e_also_big.in", depth=8000, n_cores=64)
     #manager = pizzaManager("d_quite_big.in", depth=1893, n_cores=64)
     manager.Marley()
