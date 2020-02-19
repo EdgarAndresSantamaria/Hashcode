@@ -16,7 +16,7 @@ class pizzaManager:
         self.medsynPath = inputPath
         self.N = 0 # number of classes
         self.M = 0 # number of maximun slice amount
-        self.pizzaTypes = dict() # map each class between 0 .. N-1 with slice amount
+        self.pizzaTypes = list() # map each class between 0 .. N-1 with slice amount
         self.typeDistribution = []
         self.read_input()
         print("recomended depth : {}".format(int(self.M/self.typeDistribution[len(self.typeDistribution)-1]))) #auto grading the depth (never more than )
@@ -24,9 +24,9 @@ class pizzaManager:
         print("number of types : {}".format(self.N))
         print("max number of slices : {}".format(self.M))
         print('value : type')
-        for value in self.pizzaTypes:
+        for value, slices in enumerate(self.pizzaTypes):
             # the slices per type are ordered in non-decreasing order ( 1 <= self.pizzaTypes[type]_0 <= self.pizzaTypes[type]_N <= M)
-            print(value, ':', self.pizzaTypes[value])
+            print(value, ':', slices)
 
     def read_input(self):
         first = True
@@ -41,15 +41,15 @@ class pizzaManager:
                 else:
                     # map each class to the slice amount = 'split[type]'
                     for type in range((self.N)):
-                        self.pizzaTypes.update({ int(split[type]):type})
+                        self.pizzaTypes.append(int(split[type]))
                         self.typeDistribution.append( int(split[type]))
 
     def MedysnReport(self, title):
         xArray = []
         yArray = []
-        for pair in list( self.pizzaTypes.items()):
-            xArray.append(pair[0])
-            yArray.append(pair[1])
+        for idx, slices in enumerate( self.pizzaTypes):
+            xArray.append(slices)
+            yArray.append(idx)
 
         fig = plt.figure(figsize=(10, 10))
 
@@ -89,7 +89,7 @@ class pizzaManager:
         print("\n Marley found ...")
 
         submissionline1 = len(comb_to_find)
-        secondline = sorted([self.pizzaTypes[value] for value in comb_to_find])
+        secondline = sorted([self.pizzaTypes.index(value) for value in comb_to_find])
 
         print("depth : {}".format(best_depth))
         print("target : {}".format(self.M))
@@ -160,9 +160,9 @@ if __name__ == '__main__':
     computation example
     
     '''
-    #manager = pizzaManager("a_example.in", 2, 64)
-    #manager = pizzaManager("b_small.in", 2, 64)
-    #manager = pizzaManager("c_medium.in", 47, 64)
+    manager = pizzaManager("a_example.in", 2, 64)
+    manager = pizzaManager("b_small.in", 2, 64)
+    manager = pizzaManager("c_medium.in", 47, 64)
     manager = pizzaManager("e_also_big.in", depth=8000, n_cores=64)
-    #manager = pizzaManager("d_quite_big.in", depth=1893, n_cores=64)
+    manager = pizzaManager("d_quite_big.in", depth=1893, n_cores=64)
     manager.Marley()
