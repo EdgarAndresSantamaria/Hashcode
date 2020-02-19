@@ -24,7 +24,7 @@ class pizzaManager:
         print("number of types : {}".format(self.N))
         print("max number of slices : {}".format(self.M))
         print('value : type')
-        for value, slices in enumerate(self.pizzaTypes):
+        for value, slices in zip(self.pizzaTypes, self.typeDistribution):
             # the slices per type are ordered in non-decreasing order ( 1 <= self.pizzaTypes[type]_0 <= self.pizzaTypes[type]_N <= M)
             print(value, ':', slices)
 
@@ -41,13 +41,13 @@ class pizzaManager:
                 else:
                     # map each class to the slice amount = 'split[type]'
                     for type in range((self.N)):
-                        self.pizzaTypes.append(int(split[type]))
-                        self.typeDistribution.append( int(split[type]))
+                        self.pizzaTypes.append(type)
+                        self.typeDistribution.append(int(split[type]))
 
     def MedysnReport(self, title):
         xArray = []
         yArray = []
-        for idx, slices in enumerate( self.pizzaTypes):
+        for idx, slices in zip(self.pizzaTypes, self.typeDistribution):
             xArray.append(slices)
             yArray.append(idx)
 
@@ -79,17 +79,19 @@ class pizzaManager:
         print("\n Marley's slaves finished ...")
 
         print("\n Marley is revising ...")
-        best = (0,0,0)
+        best = (0,0,0,0)
         for revision in results:
             if (revision[1] > best[1]): best = revision
 
         best_depth = best[0]
         best_score_found = best[1]
         comb_to_find =  best[2]
+        secondline = best[3]
         print("\n Marley found ...")
 
         submissionline1 = len(comb_to_find)
-        secondline = sorted([self.pizzaTypes.index(value) for value in comb_to_find])
+        #secondline = sorted([self.pizzaTypes.index(value) for value in comb_to_find])
+        assert len(secondline) == len(set(secondline))
 
         print("depth : {}".format(best_depth))
         print("target : {}".format(self.M))
@@ -120,15 +122,15 @@ class pizzaManager:
 
     # Parallel combinatorial explosion ..... for self.depth ......
     def worker_assigment(self, depth):
-        index = int(len(self.typeDistribution) / 2)
+        index = int(len(self.pizzaTypes) / 2)
         best = False
-        guess_response = (depth, 0, 0)
+        guess_response = (depth, 0, 0, 0)
         while not best:
-            num = self.typeDistribution[index]
+            type_list = self.pizzaTypes[index+1:]
             comb_list = self.typeDistribution[index+1:]
-            acc, combination= self.zipper(num, comb_list, depth)
+            acc, combination, types = self.zipper(index, type_list, comb_list, depth)
             if (acc <= self.M) & (acc > guess_response[1]):
-                guess_response = (depth , acc, combination)
+                guess_response = (depth, acc, combination, types)
                 index = (index + len(self.typeDistribution)) // 2
             else:
                 index = index // 2
@@ -136,23 +138,25 @@ class pizzaManager:
                 best = True
         return guess_response
 
-    def zipper(self, num, comb_list, depth):
+    def zipper(self, index, type_list, comb_list, depth):
         i2s = int(len(comb_list) / 2)
         best = False
         acc = 0
         combination = []
+        types = []
         while not best:
-            new_acc = sum(comb_list[i2s:i2s+depth]) + num
+            new_acc = sum(comb_list[i2s:i2s+depth]) + self.typeDistribution[index]
             if acc < new_acc and new_acc <= self.M:
                 acc = new_acc
-                combination = comb_list[i2s:i2s+depth] + [num]
+                combination = comb_list[i2s:i2s+depth] + [self.typeDistribution[index]]
+                types = [self.pizzaTypes[index]] + type_list[i2s:i2s+depth]
                 i2s = (i2s + len(comb_list)) // 2
             else:
                 i2s = i2s // 2
             if acc == self.M or i2s == 0 or i2s == len(comb_list):
                 best = True
 
-        return acc, combination
+        return acc, combination, types
 
 if __name__ == '__main__':
     '''
@@ -160,9 +164,13 @@ if __name__ == '__main__':
     computation example
     
     '''
-    manager = pizzaManager("a_example.in", 2, 64)
-    manager = pizzaManager("b_small.in", 2, 64)
-    manager = pizzaManager("c_medium.in", 47, 64)
+    # manager = pizzaManager("a_example.in", 2, 64)
+    # manager.Marley()
+    # manager = pizzaManager("b_small.in", 2, 64)
+    # manager.Marley()
+    # manager = pizzaManager("c_medium.in", 47, 64)
+    # manager.Marley()
     manager = pizzaManager("e_also_big.in", depth=8000, n_cores=64)
-    manager = pizzaManager("d_quite_big.in", depth=1893, n_cores=64)
     manager.Marley()
+    # manager = pizzaManager("d_quite_big.in", depth=1893, n_cores=64)
+    # manager.Marley()
