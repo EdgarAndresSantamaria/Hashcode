@@ -1,31 +1,32 @@
-import matplotlib.pyplot as plt
-import numpy as np
 import logging
-import threading
-import queue
-import itertools
-from multiprocessing import Pool, Process, Queue
-
+from multiprocessing import Pool
+import matplotlib.pyplot as plt
+import matplotlib as mpl
+import numpy as np
 
 class pizzaManager:
 
-    def __init__(self, inputPath,depth):
+    def __init__(self, inputPath, depth, n_cores):
+        print(" fine_tuning . . . \n")
+        self.depth = depth
+        self.n_cores = n_cores
         print(" initializing the idea . . . \n")
         self.inputPath = "data/"+inputPath
-        self.outPath = "output/"+inputPath
+        self.outPath = "output/"+inputPath.split(".")[0]+".out"
+        self.medsynPath = inputPath
         self.N = 0 # number of classes
         self.M = 0 # number of maximun slice amount
         self.pizzaTypes = dict() # map each class between 0 .. N-1 with slice amount
         self.typeDistribution = []
         self.read_input()
-        self.depth = depth
         print("recomended depth : {}".format(int(self.M/self.typeDistribution[len(self.typeDistribution)-1]))) #auto grading the depth (never more than )
         # display data
         print("number of types : {}".format(self.N))
         print("max number of slices : {}".format(self.M))
-        for type in self.pizzaTypes:
+        print('value : type')
+        for value in self.pizzaTypes:
             # the slices per type are ordered in non-decreasing order ( 1 <= self.pizzaTypes[type]_0 <= self.pizzaTypes[type]_N <= M)
-            print(type, ':', self.pizzaTypes[type])
+            print(value, ':', self.pizzaTypes[value])
 
     def read_input(self):
         first = True
@@ -40,15 +41,39 @@ class pizzaManager:
                 else:
                     # map each class to the slice amount = 'split[type]'
                     for type in range((self.N)):
-                        self.pizzaTypes.update({type: int(split[type])})
+                        self.pizzaTypes.update({ int(split[type]):type})
                         self.typeDistribution.append( int(split[type]))
+
+    def MedysnReport(self, title):
+        xArray = []
+        yArray = []
+        for pair in list( self.pizzaTypes.items()):
+            xArray.append(pair[0])
+            yArray.append(pair[1])
+
+        fig = plt.figure(figsize=(10, 10))
+
+        ax1 = fig.add_subplot(1,2,1, title='Distribution for pizza type: '+ title)
+        plt.scatter(xArray, yArray, c='blue', edgecolor='black')
+        plt.ylabel('value')
+        plt.xlabel('pizza type')
+
+        ax2 = fig.add_subplot(1, 2, 2, title='heatmap for pizza type: ' + title, aspect="auto", sharex=ax1,
+                              sharey=ax1)
+        H, xedges, yedges = np.histogram2d(xArray, yArray, bins=10)
+        H = H.T
+        im = mpl.image.NonUniformImage(ax2, interpolation='bilinear', cmap='seismic')
+        xcenters = (xedges[:-1] + xedges[1:]) / 2
+        ycenters = (yedges[:-1] + yedges[1:]) / 2
+        im.set_data(xcenters, ycenters, H)
+        ax2.images.append(im)
+        fig.colorbar(im, ax=ax2)
+
+        fig.savefig("output/"+title+'.pdf')
 
     def Marley(self):
         print("\n Marley is thinking ...")
-        # Showing up the distribution of data
-        # plt.hist(self.typeDistribution, bins=np.histogram_bin_edges(self.typeDistribution))
-        # plt.show()
-
+        self.MedysnReport(self.medsynPath)
         print("\n Marley's slaves are working ...")
         results = self.process()
         print("\n Marley's slaves finished ...")
@@ -63,15 +88,22 @@ class pizzaManager:
         comb_to_find =  best[2]
         print("\n Marley found ...")
 
+        submissionline1 = len(comb_to_find)
+        secondline = sorted([self.pizzaTypes[value] for value in comb_to_find])
+
         print("depth : {}".format(best_depth))
         print("target : {}".format(self.M))
         print("best score : {}".format(best_score_found))
-        print("winner combination : {}".format(comb_to_find))
+        print("winner combination : {}".format(secondline))
+        print("depth used : {}".format(submissionline1))
+
+
         # Todo format the output
 
-
         with open(self.outPath, 'w') as file:
-            pass
+            file.write(str(submissionline1) +"\n")
+            for type in secondline:
+                file.write(str(type) + " ")
 
     def put_into_queue(self, depth):
         return self.worker_assigment(depth)
@@ -81,14 +113,9 @@ class pizzaManager:
         logging.basicConfig(format=format, level=logging.INFO,
                             datefmt="%H:%M:%S")
         logging.info("----- initializing Marley's workers, we never surrender Hu Haaaa (º.º) ")
-        completion = 0
         pool = Pool(processes=64)
-        results = []
         logging.info("Main    : create and start threads.")
         results = pool.map(self.put_into_queue, list(range(1, self.depth+1)))
-
-        logging.info("---------------------------------------------------- "+str(completion)+" % completed")
-        print(results)
         return results
 
     # Parallel combinatorial explosion ..... for self.depth ......
@@ -100,13 +127,6 @@ class pizzaManager:
             if (acc <= self.M) & (acc > guess_response[1]):
                 guess_response = (depth , acc, combination)
         return guess_response
-
-    #def intelligent_combinations(self, depth):
-        # return itertools.combinations(self.typeDistribution, depth) # brute force (not possible only until depth 4-5)
-        # Todo generate permutations of  'self.typeDistribution' (sorted list) without repetition 'heuristic search'
-        #for index, num in enumerate(self.typeDistribution):
-        #    comb_list = self.typeDistribution[index:]
-        #    repeat_partial = zipper(num, comb_list, depth)
 
     def zipper(self, num, comb_list, depth):
         i2s = int(len(comb_list) / 2)
@@ -125,13 +145,16 @@ class pizzaManager:
                 best = True
 
         return acc, combination
-                
-
-
-
 
 if __name__ == '__main__':
-    #manager = pizzaManager("b_small.in", 9)
-    #manager = pizzaManager("c_medium.in", 30)
-    manager = pizzaManager("d_quite_big.in", 900)
+    '''
+    
+    computation example
+    
+    '''
+    #manager = pizzaManager("a_example.in", 2, 64)
+    #manager = pizzaManager("b_small.in", 2, 64)
+    #manager = pizzaManager("c_medium.in", 47, 64)
+    manager = pizzaManager("e_also_big.in", depth=4000, n_cores=64)
+    #manager = pizzaManager("d_quite_big.in", depth=1893, n_cores=64)
     manager.Marley()
