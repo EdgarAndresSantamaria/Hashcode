@@ -42,7 +42,7 @@ class Scanner:
         prev = set([])
         used_days = 0
         for score, library in ordered_libraries:
-            print(remaining_days)
+            # print(remaining_days)
             remaining_days += min(used_days, library.signin_days)
             remaining_days -= library.signin_days
             if remaining_days <= 0:
@@ -59,9 +59,15 @@ class Scanner:
                     scanned.extend(books[idx:])
                 remaining_days -= 1
                 used_days += 1
+            # print(remaining_days)
+            # print(used_days)
+            # print(library.books)
             if len(scanned) > 0:
                 results.append((library.index, scanned))
                 prev.update(scanned)
+                remaining_days += used_days
+                remaining_days += library.signin_days
+                used_days = 0
 
         return results
 
@@ -71,8 +77,8 @@ class Scanner:
             intersect = set(self.books) & set(library.books)
             scores.append(sum(intersect) / (library.signin_days + len(intersect) / library.capacity))
         scored_libraries = zip(scores, self.libraries)
-        ordered_libraries = sorted(scored_libraries, key=lambda x: x[0])
-        print(ordered_libraries)
+        ordered_libraries = sorted(scored_libraries, key=lambda x: x[0], reverse=True)
+        # print(ordered_libraries)
         return ordered_libraries
 
 
@@ -122,15 +128,15 @@ def main(filename):
 
 
 if __name__ == '__main__':
-    # filename = 'a_example.txt'
-    # main(filename)
-    # filename = 'b_read_on.txt'
-    # main(filename)
+    filename = 'a_example.txt'
+    main(filename)
+    filename = 'b_read_on.txt'
+    main(filename)
     filename = 'c_incunabula.txt'
     main(filename)
-    # filename = 'd_tough_choices.txt'
-    # main(filename)
-    # filename = 'e_so_many_books.txt'
-    # main(filename)
-    # filename = 'f_libraries_of_the_world.txt'
-    # main(filename)
+    filename = 'd_tough_choices.txt'
+    main(filename)
+    filename = 'e_so_many_books.txt'
+    main(filename)
+    filename = 'f_libraries_of_the_world.txt'
+    main(filename)
