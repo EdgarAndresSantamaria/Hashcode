@@ -166,7 +166,7 @@ if __name__ == '__main__':
     # b_little_bit_of_everything (0.20 secs )
     # c_many_ingredients (152.76883554458618 secs == 3 min)
     # d_many_pizzas ( 389.627845764160156 secs == 6 min )
-    # e_many_teams ( expected 1-2 hours ... inneficient!!!! )
+    # e_many_teams ( 1683.0759224891663 sec == 28 min )
 
     # finalize development for team 2 data, then scale the algorithm (seems good performance )
     # todo: get better performance for e_many_teams
@@ -182,5 +182,5 @@ if __name__ == '__main__':
     pizza_hut3 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\d_many_pizzas.in',
                           'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\d_many_pizzas.out')
 
-    #pizza_hut4 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\e_many_teams.in',
-    #                       'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\e_many_teams.out')
+    pizza_hut4 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\e_many_teams.in',
+                           'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\e_many_teams.out')
