@@ -24,7 +24,8 @@ class pizza_hut:
         # data information display
         print(" number of pizzas: {} \n number of 2 people teams {} \n number of 3 people teams {} \n number of 4 people teams {} \n\n ".format(
                 self.M, self.T2, self.T3, self.T4))
-        self.manage_deliveries()  #manage the deliveries launch
+
+        self.manage_delivery_intersected()  #manage the deliveries launch
         self.write_out()  #generate the submission file
 
     '''
@@ -37,28 +38,28 @@ class pizza_hut:
 
     '''
     Method that manages the control logic for each deliveries group
+    - follows a linear way to compose delveries (this method seems worst in practice)
     '''
-    def manage_deliveries(self):
+    def manage_deliveries_lineal(self):
+        # Testing results for teams of 2, 3 and 4
+        # a_example ( 0.0 secs )    74 points  (/)
+        # b_little_bit_of_everything (0.29 secs )   9,398 points (\)
+        # c_many_ingredients ( 263 secs == 4 min)   465,955,841 points (\)
+        # d_many_pizzas ( 601 == 10 min )   5,999,204 points (\)
+        # e_many_teams ( 32247 == 8.6h ... unnefficient)     7,623,113 points (/)
+
         # control logic for deliveries
         # todo: here we must alleviate the effect of many teams (scalability phase)
         # must apply concurrency technologies to afford many teams efficiently
         acc = 0
-        '''
-        develop this idea somewhere....
-        
-        n_threats = 32   
-         with Pool(n_threats) as p: # n_threats processes
-                 p.map(self.deliver, [2])
-        '''
-        for loop in range(int(self.T2)): #deliver (number of 2 people teams: T2) pizza pairs
-            start = time.time()
-            self.deliver(2)
-            end = time.time()
-            acc += (end - start)
-
         for loop in range(int(self.T3)):  # deliver (number of 3 people teams: T3) pizza pairs
             start = time.time()
             self.deliver(3)
+            end = time.time()
+            acc += (end - start)
+        for loop in range(int(self.T2)):  # deliver (number of 2 people teams: T2) pizza pairs
+            start = time.time()
+            self.deliver(2)
             end = time.time()
             acc += (end - start)
         for loop in range(int(self.T4)):  # deliver (number of 4 people teams: T4) pizza pairs
@@ -67,6 +68,44 @@ class pizza_hut:
             end = time.time()
             acc += (end - start)
         print("time for delivery {}".format(acc))
+
+    '''
+    Method that manages the control logic for each deliveries group
+    - follows intersected way to generate groups 
+    '''
+    def manage_delivery_intersected(self):
+
+        # Testing results for teams of 2, 3 and 4
+        # a_example ( 0.0 secs )    74 points  (/)
+        # b_little_bit_of_everything (0.32 secs )   9,610 points (\)
+        # c_many_ingredients ( 301 secs == 5 min)   477,108,025 points (/)
+        # d_many_pizzas ( 652 == 11 min )   6,023,215 points (\)
+        # e_many_teams ( 32247 == 8.6h ... unnefficient)     7,623,113 points (/)
+
+
+        # control logic for deliveries
+        # todo: here we must alleviate the effect of many teams (scalability phase)
+        # must apply concurrency technologies to afford many teams efficiently
+        # intercalation of the output deliveries we achieve better performance
+        # ordering also seems important
+        end = False
+        cnt2, cnt3, cnt4 = 0, 0, 0
+        self.T2, self.T3, self.T4 = int(self.T2), int(self.T3), int(self.T4)
+        start = time.time()
+        while not end:
+            if cnt4 < self.T4:
+                self.deliver(4)
+                cnt4 += 1
+            if cnt3 < self.T3:
+                self.deliver(3)
+                cnt3 += 1
+            if cnt2 < self.T2:
+                self.deliver(2)
+                cnt2 += 1
+            if ((cnt2 == self.T2) and (cnt3 == self.T3) and (cnt4 == self.T4)) or (not self.Amounts_2_ids): end = True
+
+        end = time.time()
+        print("time for delivery {}".format(end - start))
 
     '''
     Method that delivers a pizza composition for a group
@@ -85,12 +124,13 @@ class pizza_hut:
             deliver_lst.append(best_pizza) #append the best pizza we found
             amount_lst.append(best_amount_id)
 
-        # todo: quality controls (must ensure the formats and control errors in selection)
+        # quality controls (must ensure the formats and control errors in selection)
         for i, amount in enumerate(amount_lst):  #update available pizzas
             # this method alleviates the computattion with many pizzas
             amount_ids = self.Amounts_2_ids.pop(amount)
             amount_ids.remove(deliver_lst[i])
-            self.Amounts_2_ids[amount] = amount_ids
+            if amount_ids: self.Amounts_2_ids[amount] = amount_ids  #remove empty amounts
+
         deliver_lst = [str(i) for i in deliver_lst]  #format output as string
         self.result.append("{} {} \n".format(team_number, " ".join(deliver_lst)))  #create submission line
         self.D += 1  #count new delivery
@@ -128,7 +168,6 @@ class pizza_hut:
             if (mode == "pair"):
                 if (amount < non_overlap_amount) or (amount == non_overlap_amount):
                     break #prune those non-probable amounts
-
             for pizza in pizza_ids:  # search every pizza in current amount
                 if (mode == "pair") and (pizza not in pizza_lst):
                     current_ingredients = self.ids_2_ingredents[pizza]
@@ -148,6 +187,7 @@ class pizza_hut:
             if pizza_id != -1 and (mode == "base"): break  # break search once encountered
         return pizza_id, amount_id
 
+
     def load(self):
         with open(self.in_path) as f:
             self.M, self.T2, self.T3, self.T4 = f.readline().split()  #headers loading
@@ -160,27 +200,19 @@ class pizza_hut:
                 id+=1
 
 if __name__ == '__main__':
-
-    # Testing results for teams of 2, 3 and 4
-    # a_example ( 0.0 secs )
-    # b_little_bit_of_everything (0.20 secs )
-    # c_many_ingredients (152.76883554458618 secs == 3 min)
-    # d_many_pizzas ( 389.627845764160156 secs == 6 min )
-    # e_many_teams ( expected 1-2 hours ... inneficient!!!! )
-
     # finalize development for team 2 data, then scale the algorithm (seems good performance )
     # todo: get better performance for e_many_teams
     pizza_hut0 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\a_example.in',
-                          'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\a_example.out')
+                           'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\a_example.out')
 
     pizza_hut1 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\b_little_bit_of_everything.in',
                            'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\b_little_bit_of_everything.out')
 
     pizza_hut2 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\c_many_ingredients.in',
-                          'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\c_many_ingredients.out')
+                           'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\c_many_ingredients.out')
 
     pizza_hut3 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\d_many_pizzas.in',
-                          'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\d_many_pizzas.out')
+                           'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\d_many_pizzas.out')
 
-    #pizza_hut4 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\e_many_teams.in',
-    #                       'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\e_many_teams.out')
+    pizza_hut4 = pizza_hut('C:\\Users\\BM007\\PycharmProjects\\Hashcode\\data\\e_many_teams.in',
+                          'C:\\Users\\BM007\\PycharmProjects\\Hashcode\\out\\e_many_teams.out')
