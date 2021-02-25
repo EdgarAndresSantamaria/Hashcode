@@ -12,7 +12,7 @@ class scheduler:
         with open(self.in_path) as f:
             self.streets = []
             self.paths = []
-            self.D, self.I, self.S, self.V, self.F = f.readline().split()  # headers loading
+            self.D, self.I, self.S, self.V, self.F = [int(elem) for elem in f.readline().split()]  # headers loading
             for i, line in enumerate(f.readlines()):  # loading pizza information
                if i <= self.S: # lower that S lines == street
                    split = line.split()
