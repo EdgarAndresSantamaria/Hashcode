@@ -23,4 +23,4 @@ class scheduler:
 
 if __name__ == 'main':
     your_path = "/media/edgar/407d4115-9ff4-45c6-9279-01b62aee0730/hascode2021"
-    pizza_hut0 = acheduler(your_path + '/data/a.txt', your_path + '/out/a.txt')
+    pizza_hut0 = scheduler(your_path + '/data/a.txt', your_path + '/out/a.txt')
