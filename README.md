@@ -1,6 +1,6 @@
 # Hashcode2021
 
-This code repository is created for the current Hashcode competition contest, current season team EdXiMo composed by Xiao Xu, Mohamed Yassin and Edgar Andrés.
+This code repository is created for the current Hashcode competition contest, current season team EXM composed by Xiao Xu, Mohamed Yassin and Edgar Andrés.
 
 ![alt text](https://github.com/EdgarAndresSantamaria/Hashcode2020/blob/master/certificate2021.png)
 
